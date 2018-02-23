@@ -17,15 +17,12 @@ trait wpAutoHooks {
 	private static $methods_names_actions = [];
 
 	public static function connect( $instance=NULL ) {
-		static $lock = FALSE;
-		if ( $lock ) { return; }
-		
+            
 		if ( !( function_exists( 'add_action' ) && function_exists( 'add_filter' ) ) ) {
 			throw new Exception();
 		}
 		
 		self::create_hook_connections_from_names( self::get_method_names_hooks() );
-		$lock = TRUE;
 	}
 
 	private static function create_hook_connections_from_names( $method_names, $instance=NULL ) {
