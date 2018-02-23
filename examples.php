@@ -1,5 +1,7 @@
 <?php
 
+require('trait-wp-auto-hooks.php');
+
 abstract class Class1 {
 	use wpAutoHooks;
 	static public function test1_wpaction() {esc_html_e(current_filter());}	
