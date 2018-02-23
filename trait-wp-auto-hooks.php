@@ -22,7 +22,21 @@ trait wpAutoHooks {
 			throw new Exception();
 		}
 		
-		self::create_hook_connections_from_names( self::get_method_names_hooks() );
+		self::create_hook_connections_from_names( self::get_method_names_hooks(), $instance );
+	}
+
+	public static function disconnect( $instance=NULL ) {
+            
+		if ( !( function_exists( 'add_action' ) && function_exists( 'add_filter' ) ) ) {
+			throw new Exception();
+		}
+		
+		self::remove_hook_connections_from_names( self::get_method_names_hooks(), $instance );
+	}
+        
+        private static function hook_check( $name ) {
+		$tag = self::get_tag_from_method($name);
+		return $tag && $tag === current_filter();
 	}
 
 	private static function create_hook_connections_from_names( $method_names, $instance=NULL ) {
@@ -46,6 +60,30 @@ trait wpAutoHooks {
 			} elseif ( in_array( $name, self::$methods_names_filters ) ) {
 				add_filter( $tag, [ $static ? static::class : $instance, $name ], 
 						$priority, $params );
+			}
+		}
+	}
+        private static function remove_hook_connections_from_names( $method_names, $instance=NULL ) {
+		if ( !is_array( $method_names ) || empty( $method_names ) ) {
+			return;
+		}
+		
+		foreach ( $method_names as $name ) {
+			
+			$rm = new ReflectionMethod ( self::class, $name );
+			$static = $rm->isStatic();
+			$params = $rm->getNumberOfRequiredParameters();
+			$tag      = self::get_tag_from_method($name);
+			$priority = self::get_priority_from_method($name);
+			
+			if ( !$static && !$instance || 'all' === $tag ) { continue; }
+
+			if ( in_array( $name, self::$methods_names_actions ) ) {
+				remove_action( $tag, [ $static  ? static::class : $instance, $name ], 
+						$priority );
+			} elseif ( in_array( $name, self::$methods_names_filters ) ) {
+				remove_filter( $tag, [ $static ? static::class : $instance, $name ], 
+						$priority );
 			}
 		}
 	}

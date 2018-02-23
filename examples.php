@@ -21,6 +21,8 @@ class Class2 extends Class1 {
 }
 
 (new Class2())->connect();
+//Class2::connect(new Class2());
+//Class2::connect();
 
 do_action('test1');
 apply_filters('test2', 'test');
