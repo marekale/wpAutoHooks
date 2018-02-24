@@ -29,21 +29,30 @@ abstract class wpAdminMenuController {
 		self::hook_check(__FUNCTION__);
 	
 		foreach ( self::$insert_menu_elem_after as $args ) {
-			self::_insert_menu_elem_after( $args[0], $args[1] );
-		}
-		foreach ( self::$insert_menu_elem_before as $args ) {
-			self::_insert_menu_elem_before( $args[0], $args[1] );
+			switch ( $args['type'] ) {
+				case 'before':
+					self::_insert_menu_elem_before( $args[0], $args[1] );
+
+					break;
+				case 'after':
+					self::_insert_menu_elem_after( $args[0], $args[1] );
+
+					break;
+
+				default:
+					break;
+			}
 		}
 	}
 	
 	public static function insert_menu_elem_after( $elem_after, wpAdminMenuElem $elem ) {
 		self::did_hook('adminmenu');
-		self::$insert_menu_elem_after[] = [ $elem_after, $elem ];
+		self::$insert_menu_elem_after[] = [ $elem_after, $elem, 'type' => 'after' ];
 	}
 	
 	public static function insert_menu_elem_before( $elem_after, wpAdminMenuElem $elem ) {
 		self::did_hook('adminmenu');
-		self::$insert_menu_elem_before[] = [ $elem_after, $elem ];
+		self::$insert_menu_elem_before[] = [ $elem_after, $elem, 'type' => 'before' ];
 	}
 
 	private static function _insert_menu_elem_after( $elem_after, wpAdminMenuElem $elem ) {
