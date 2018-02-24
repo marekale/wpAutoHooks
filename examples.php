@@ -32,3 +32,8 @@ do_action('test7');
 do_action('test8');
 do_action('test9');
 do_action('test10');
+
+require('abstract-admin-menu-controller.php');
+
+wpAdminMenuController::insert_menu_elem_after( 'Media', new wpAdminMenuElem() );
+wpAdminMenuController::insert_menu_elem_before( 'Media', new wpAdminMenuElem() );
