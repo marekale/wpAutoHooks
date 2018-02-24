@@ -12,40 +12,61 @@ trait wpAutoHooks {
 	
 	private static $METHOD_NAME_ERROR_MESSAGE       = 'Invalid method name';
 	private static $UNKNOWN_HOOK_TYPE_ERROR_MESSAGE = 'Unknown hook type' ;
+	private static $HOOK_CHECK_ERROR_MESSAGE        = 'Only WordPress can call: %s';
+	private static $DID_HOOK_ERROR_MESSAGE          = 'Too late, hook %s has fired';
 	
 	private static $methods_names_filters = [];
 	private static $methods_names_actions = [];
+        
+    private static $connected = FALSE;
 
 	public static function connect( $instance=NULL ) {
             
+		if ( self::connected() ) { return; }
+
 		if ( !( function_exists( 'add_action' ) && function_exists( 'add_filter' ) ) ) {
 			throw new Exception();
 		}
 		
 		self::instance_check( $instance );
 		self::create_hook_connections_from_names( self::get_method_names_hooks(), $instance );
+		self::$connected = TRUE;
 	}
 
 	public static function disconnect( $instance=NULL ) {
             
-		if ( !( function_exists( 'add_action' ) && function_exists( 'add_filter' ) ) ) {
+		if ( !self::connected() ) { return; }
+            
+        if ( !( function_exists( 'add_action' ) && function_exists( 'add_filter' ) ) ) {
 			throw new Exception();
 		}
 		
 		self::instance_check( $instance );
 		self::remove_hook_connections_from_names( self::get_method_names_hooks(), $instance );
+		self::$connected = FALSE;
+	}
+        
+    public static function connected() {
+		return self::$connected;
 	}
         
     private static function hook_check( $name ) {
 		$tag = self::get_tag_from_method($name);
 		if ( !($tag && $tag === current_filter()) ) {
-			throw new Exception();
+			throw new Exception( sprintf( 
+					self::$HOOK_CHECK_ERROR_MESSAGE, self::class.'::'.$name ) );
 		}
 	}
 	
 	private static function instance_check( $instance ) {
 		if ( is_object($instance) && !is_a( $instance, self::class ) ) {
 			throw new Exception();
+		}
+	}
+
+	private static function did_hook( $tag ) {
+		if ( did_action( $tag ) ) {
+			throw new Exception( sprintf( self::$DID_HOOK_ERROR_MESSAGE, $tag ) );
 		}
 	}
 
@@ -88,6 +109,8 @@ trait wpAutoHooks {
 		foreach ( $method_names as $name ) {
 			
 			$rm = new ReflectionMethod ( self::class, $name );
+			if ( $rm->isPrivate() || $rm->isProtected() ) { continue; }
+			
 			$static = $rm->isStatic();
 			$params = $rm->getNumberOfRequiredParameters();
 			$tag      = self::get_tag_from_method($name);
