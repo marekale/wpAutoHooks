@@ -18,37 +18,60 @@ trait wpAutoHooks {
 	private static $methods_names_filters = [];
 	private static $methods_names_actions = [];
         
-    private static $connected = FALSE;
+    private static $static_connected = FALSE;
+	private $connected = FALSE;
 
-	public static function connect( $instance=NULL ) {
+	public static function static_connect() {
             
-		if ( self::connected() ) { return; }
+		if ( self::static_connected() ) { return; }
 
 		if ( !( function_exists( 'add_action' ) && function_exists( 'add_filter' ) ) ) {
 			throw new Exception();
 		}
 		
-		self::instance_check( $instance );
-		self::create_hook_connections_from_names( self::get_method_names_hooks(), $instance );
-		self::$connected = TRUE;
+		self::create_hook_connections_from_names( self::get_method_names_hooks() );
+		self::$static_connected = TRUE;
 	}
 
-	public static function disconnect( $instance=NULL ) {
+	public static function static_disconnect() {
             
-		if ( !self::connected() ) { return; }
+		if ( !self::static_connected() ) { return; }
             
         if ( !( function_exists( 'add_action' ) && function_exists( 'add_filter' ) ) ) {
 			throw new Exception();
 		}
 		
-		self::instance_check( $instance );
 		self::remove_hook_connections_from_names( self::get_method_names_hooks(), $instance );
-		self::$connected = FALSE;
+		self::$static_connected = FALSE;
 	}
-        
-    public static function connected() {
-		return self::$connected;
+	
+	public static function static_connected() { return self::$static_connected; }
+	
+	public function connect() {
+            
+		if ( $this->connected() ) { return; }
+
+		if ( !( function_exists( 'add_action' ) && function_exists( 'add_filter' ) ) ) {
+			throw new Exception();
+		}
+		
+		self::create_hook_connections_from_names( self::get_method_names_hooks(), $this );
+		$this->connected = TRUE;
 	}
+	
+	public function disconnect() {
+            
+		if ( !$this->connected() ) { return; }
+            
+        if ( !( function_exists( 'add_action' ) && function_exists( 'add_filter' ) ) ) {
+			throw new Exception();
+		}
+		
+		self::remove_hook_connections_from_names( self::get_method_names_hooks(), $this );
+		$this->connected = FALSE;
+	}
+	
+	public function connected() { return $this->connected; }
         
     private static function hook_check( $name ) {
 		$tag = self::get_tag_from_method($name);
@@ -87,7 +110,8 @@ trait wpAutoHooks {
 			$tag      = self::get_tag_from_method($name);
 			$priority = self::get_priority_from_method($name);
 			
-			if ( !$static && !$instance || 'all' === $tag ) { continue; }
+			if ( !$static && !$instance || $static && $instance || 'all' === $tag ) 
+				{ continue; }
 
 			if ( in_array( $name, self::$methods_names_actions ) ) {
 				add_action( $tag, [ $static  ? static::class : $instance, $name ], 
@@ -116,7 +140,8 @@ trait wpAutoHooks {
 			$tag      = self::get_tag_from_method($name);
 			$priority = self::get_priority_from_method($name);
 			
-			if ( !$static && !$instance || 'all' === $tag ) { continue; }
+			if ( !$static && !$instance || $static && $instance || 'all' === $tag ) 
+				{ continue; }
 
 			if ( in_array( $name, self::$methods_names_actions ) ) {
 				remove_action( $tag, [ $static  ? static::class : $instance, $name ], 
