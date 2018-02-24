@@ -22,6 +22,7 @@ trait wpAutoHooks {
 			throw new Exception();
 		}
 		
+		self::instance_check( $instance );
 		self::create_hook_connections_from_names( self::get_method_names_hooks(), $instance );
 	}
 
@@ -31,12 +32,21 @@ trait wpAutoHooks {
 			throw new Exception();
 		}
 		
+		self::instance_check( $instance );
 		self::remove_hook_connections_from_names( self::get_method_names_hooks(), $instance );
 	}
         
-        private static function hook_check( $name ) {
+    private static function hook_check( $name ) {
 		$tag = self::get_tag_from_method($name);
-		return $tag && $tag === current_filter();
+		if ( !($tag && $tag === current_filter()) ) {
+			throw new Exception();
+		}
+	}
+	
+	private static function instance_check( $instance ) {
+		if ( is_object($instance) && !is_a( $instance, self::class ) ) {
+			throw new Exception();
+		}
 	}
 
 	private static function create_hook_connections_from_names( $method_names, $instance=NULL ) {
@@ -44,9 +54,13 @@ trait wpAutoHooks {
 			return;
 		}
 		
+		self::instance_check($instance);
+		
 		foreach ( $method_names as $name ) {
 			
 			$rm = new ReflectionMethod ( self::class, $name );
+			if ( $rm->isPrivate() || $rm->isProtected() ) { continue; }
+			
 			$static = $rm->isStatic();
 			$params = $rm->getNumberOfRequiredParameters();
 			$tag      = self::get_tag_from_method($name);
@@ -63,10 +77,13 @@ trait wpAutoHooks {
 			}
 		}
 	}
-        private static function remove_hook_connections_from_names( $method_names, $instance=NULL ) {
+	
+    private static function remove_hook_connections_from_names( $method_names, $instance=NULL ) {
 		if ( !is_array( $method_names ) || empty( $method_names ) ) {
 			return;
 		}
+		
+		self::instance_check($instance);
 		
 		foreach ( $method_names as $name ) {
 			
@@ -87,6 +104,7 @@ trait wpAutoHooks {
 			}
 		}
 	}
+	
 	private static function get_priority_from_method( $name ) {
 		
 		$chunks     = self::get_method_chunks( $name ) ;
@@ -135,6 +153,7 @@ trait wpAutoHooks {
 
 		return $method_chunks;
 	}
+	
 	private static function get_method_names_hooks() {
 
 		$methods_names          = self::get_this_class_methods( self::class );
