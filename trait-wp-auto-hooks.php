@@ -90,7 +90,7 @@ trait wpAutoHooks {
 	private static function get_priority_from_method( $name ) {
 		
 		$chunks     = self::get_method_chunks( $name ) ;
-		$last_chunk = str_replace( '_', '',end($chunks) );
+		$last_chunk = end($chunks);
 		
 		$priority = absint( $last_chunk==='' ? 
 						self::$WP_DEFAULT_HOOK_PRIORITY :
@@ -114,9 +114,7 @@ trait wpAutoHooks {
 						$method_chunks[0] .= self::$WP_ACTION_HOOK_SUFFIX . $method_chunks[$i];
 					}
 				}
-			} elseif ( $count === 2 ) {
-				return $method_chunks;
-			} else {
+			} elseif ( $count < 2 ) {
 				throw new Exception( self::$METHOD_NAME_ERROR_MESSAGE );
 			}
 		} elseif ( self::method_is_wp_filter( $name ) ) {
@@ -128,13 +126,11 @@ trait wpAutoHooks {
 						$method_chunks[0] .= self::$WP_FILTER_HOOK_SUFFIX . $method_chunks[$i];
 					}
 				}
-			} elseif ( $count === 2 ) {
-				return $method_chunks;
-			} else {
+			} elseif ( $count < 2 ) {
 				throw new Exception( self::$METHOD_NAME_ERROR_MESSAGE );
 			}
 		} else {
-				throw new Exception( self::$UNKNOWN_HOOK_TYPE_ERROR_MESSAGE );
+                    throw new Exception( self::$UNKNOWN_HOOK_TYPE_ERROR_MESSAGE );
 		}
 
 		return $method_chunks;
