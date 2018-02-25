@@ -243,5 +243,12 @@ trait wpAutoHooks {
 		strpos( $method_name , self::$WP_FILTER_HOOK_SUFFIX ) !== false &&
 		self::method_is_wp_hook( end( $exlode ) ) === false ;
 	}
+	
+	private static function default_priority( $n=NULL ) { 
+		if ( is_null($n) ) { 
+			return self::$WP_DEFAULT_HOOK_PRIORITY; 
+		} 
+		self::$WP_DEFAULT_HOOK_PRIORITY=$n; 
+	}
 }
 

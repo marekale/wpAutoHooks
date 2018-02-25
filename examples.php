@@ -35,5 +35,16 @@ do_action('test10');
 
 require('abstract-admin-menu-controller.php');
 
-wpAdminMenuController::insert_menu_elem_after( 'Media', new wpAdminMenuElem() );
-wpAdminMenuController::insert_menu_elem_before( 'Media', new wpAdminMenuElem() );
+wpAdminMenuController::insert_menu_item_before('WooCommerce', new wpAdminMenuElem());
+wpAdminMenuController::insert_menu_item_first(new wpAdminMenuElem());
+add_action( 'plugins_loaded', function () {wpAdminMenuController::remove_menu_item('Tools');} );
+wpAdminMenuController::insert_menu_item_after(2, (new wpAdminMenuElem())->menu_count(3));
+wpAdminMenuController::insert_menu_item_after( 'Media', new wpAdminMenuElem() );
+wpAdminMenuController::insert_menu_item_before( 2, (new wpAdminMenuElem())->menu_count( 9 )->menu_title('int test')->capability( 'read' )->add_class( 'marale-test1' )->add_class( 'marale-test2' ) );
+wpAdminMenuController::insert_menu_item_before( 'Menu Title', (new wpAdminMenuElem())->menu_title('Before Menu Title') );
+wpAdminMenuController::insert_menu_item_before('plugins.php', new wpAdminMenuElem());
+wpAdminMenuController::insert_menu_item_after('plugins.php', new wpAdminMenuElem());
+wpAdminMenuController::insert_menu_item_last((new wpAdminMenuElem())->menu_title( 'Last Menu Item') );
+wpAdminMenuController::update_menu_item('users.php', ['title'=>'%s - Updated Menu Item', 'icon'=>'dashicons-info','classes'=>'%s marale-test1','count'=> 666] );
+wpAdminMenuController::bulk_update_menu_items( [ 'Pages', 'Posts' ], ['count'=>123] );
+wpAdminMenuController::update_all_menu_items([ 'title' => 'All - %s', 'icon' => 'dashicons-info' ]);
