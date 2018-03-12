@@ -1,5 +1,7 @@
 <?php
 
+if ( !trait_exists('wpAutoHooks') ) :
+
 trait wpAutoHooks {
 	
         private static $WP_ACTION_HOOK_SUFFIX           = '_wpaction' ;
@@ -252,3 +254,4 @@ trait wpAutoHooks {
 	}
 }
 
+endif;
