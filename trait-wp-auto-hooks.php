@@ -4,6 +4,8 @@ if ( !trait_exists('wpAutoHooks') ) :
 
 trait wpAutoHooks {
 	
+        private static $VERSION = '1.1';
+    
         private static $WP_ACTION_HOOK_SUFFIX           = '_wpaction' ;
         private static $WP_FILTER_HOOK_SUFFIX           = '_wpfilter' ;
         private static $WP_DEFAULT_HOOK_PRIORITY        = 10;
@@ -22,32 +24,37 @@ trait wpAutoHooks {
 
         private static $static_connected = FALSE;
         private $connected = FALSE;
+        
+        public static function version() { return self::$VERSION; }
 
         public static function static_connect() {
 
-                if ( self::static_connected() ) { return; }
+                if ( static::static_connected() ) { return; }
 
                 if ( !( function_exists( 'add_action' ) && function_exists( 'add_filter' ) ) ) {
                         throw new Exception();
                 }
 
                 self::create_hook_connections_from_names( self::get_method_names_hooks() );
-                self::$static_connected = TRUE;
+                self::$static_connected[static::class] = TRUE;
         }
 
         public static function static_disconnect() {
 
-                if ( !self::static_connected() ) { return; }
+                if ( !static::static_connected() ) { return; }
 
                 if ( !( function_exists( 'add_action' ) && function_exists( 'add_filter' ) ) ) {
                         throw new Exception();
                 }
 
-                self::remove_hook_connections_from_names( self::get_method_names_hooks(), $instance );
-                self::$static_connected = FALSE;
+                self::remove_hook_connections_from_names( self::get_method_names_hooks() );
+                unset( self::$static_connected[static::class] );
 	}
 	
-	public static function static_connected() { return self::$static_connected; }
+	public static function static_connected() { 
+            return isset( self::$static_connected[static::class] ) 
+                && self::$static_connected[static::class]; 
+        }
 	
 	public function connect() {
             
